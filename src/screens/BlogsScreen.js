@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,21 +11,25 @@ import { Context as BlogContext } from "../context/BlogContext";
 import { Feather } from "@expo/vector-icons";
 
 const BlogsScreen = ({ navigation }) => {
-  const { state: blogs, addBlog, deleteBlog } = useContext(BlogContext);
-  console.log(navigation);
+  const { state: blogs, deleteBlog, getBlogs } = useContext(BlogContext);
+  useEffect(() => {
+    navigation.addListener("didFocus", () => {
+      getBlogs();
+    });
+  }, []);
+
   return (
     <View>
-      <Button title="Add Post" onPress={addBlog} />
       <FlatList
         data={blogs}
         keyExtractor={(blog) => blog.id}
         renderItem={({ item }) => {
           return (
-            <TouchableOpacity onPress={() => navigation.navigate("BlogDetail")}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("BlogDetail", { id: item.id })}
+            >
               <View style={styles.viewStyle}>
-                <Text style={styles.titleStyle}>
-                  {item.title} - {item.id}
-                </Text>
+                <Text style={styles.titleStyle}>{item.title}</Text>
                 <TouchableOpacity onPress={() => deleteBlog(item.id)}>
                   <Feather style={styles.iconStyle} name="trash" />
                 </TouchableOpacity>
@@ -36,6 +40,16 @@ const BlogsScreen = ({ navigation }) => {
       />
     </View>
   );
+};
+
+BlogsScreen.navigationOptions = ({ navigation }) => {
+  return {
+    headerRight: () => (
+      <TouchableOpacity onPress={() => navigation.navigate("CreateBlog")}>
+        <Feather name="plus" size={30} />
+      </TouchableOpacity>
+    ),
+  };
 };
 
 const styles = StyleSheet.create({
